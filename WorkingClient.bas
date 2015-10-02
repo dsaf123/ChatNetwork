@@ -1,6 +1,11 @@
 'client
 _TITLE ("CLIENT")
 
+ip$ = "" 'Leave blank to be asked at runtime.
+IF ip$ = "" THEN
+    INPUT "What's the IP of the server you would like to join?", ip$
+END IF
+
 client = _OPENCLIENT("TCP/IP:80:localhost")
 CLS
 IF client THEN
