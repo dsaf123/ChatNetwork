@@ -6,13 +6,15 @@ IF ip$ = "" THEN
     INPUT "What's the IP of the server you would like to join?", ip$
 END IF
 
-client = _OPENCLIENT("TCP/IP:80:localhost")
+client = _OPENCLIENT("TCP/IP:300:" + ip$)
 CLS
 IF client THEN
     INPUT "What is your name?", name$
     name$ = LTRIM$(RTRIM$(name$))
     message$ = name$ + " has connected!"
     PUT #client, , message$
+
+
 END IF
 
 DO: _LIMIT 100

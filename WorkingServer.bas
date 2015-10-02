@@ -1,9 +1,10 @@
 'SERVER
 _TITLE ("SERVER")
-host = _OPENHOST("TCP/IP:80")
+host = _OPENHOST("TCP/IP:300")
 DIM users(1 TO 1000)
-client = _OPENCLIENT("TCP/IP:80:localhost")
-name$ = "Server Host"
+DIM usersName(1 TO 1000)
+client = _OPENCLIENT("TCP/IP:300:localhost")
+hname$ = "Server Host"
 DO: _LIMIT 100
     newclient = _OPENCONNECTION(host)
 
@@ -12,7 +13,10 @@ DO: _LIMIT 100
         numclients = numclients + 1
         users(numclients) = newclient
         GET #users(numclients), , name$
-        PRINT "Newcomer approaching!"
+
+
+        ' SendMessage name$, name$ + " HAS JOINED", client
+
 
 
     END IF
@@ -32,7 +36,7 @@ DO: _LIMIT 100
     NEXT p
 
     GetMessage client
-    SendMessage name$, mymessage$, client
+    SendMessage hname$, mymessage$, client
 LOOP
 SUB GetMessage (client)
 GET #client, , newmessage$
@@ -56,10 +60,16 @@ END IF
 LOCATE 24, 1: PRINT SPACE$(80); ' erase previous message displayed
 LOCATE 24, 1: PRINT name$ + ": "; mymessage$;
 IF k$ = CHR$(13) THEN ' [Enter] sends the message
-    IF mymessage$ = "" THEN SYSTEM ' [Enter] with no message ends program
-    part3$ = name$ + ": " + mymessage$
-    PUT #client, , part3$
-    mymessage$ = ""
+    IF mymessage$ = "/list" THEN
+        FOR p = 1 TO numusers
+            PRINT usersNames(p)
+        NEXT
+    ELSE
+        IF mymessage$ = "" THEN SYSTEM ' [Enter] with no message ends program
+        part3$ = name$ + ": " + mymessage$
+        PUT #client, , part3$
+        mymessage$ = ""
+    END IF
 END IF
 IF k$ = CHR$(27) THEN SYSTEM ' [Esc] key ends program
 END SUB
