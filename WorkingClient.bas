@@ -5,7 +5,7 @@ client = _OPENCLIENT("TCP/IP:80:localhost")
 CLS
 IF client THEN
     INPUT "What is your name?", name$
-
+    name$ = LTRIM$(RTRIM$(name$))
     message$ = name$ + " has connected!"
     PUT #client, , message$
 END IF
