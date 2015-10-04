@@ -1,8 +1,9 @@
 'SERVER
 _TITLE ("SERVER")
 host = _OPENHOST("TCP/IP:300")
-DIM users(1 TO 1000)
-DIM usersName(1 TO 1000)
+DIM SHARED users(1 TO 1000)
+DIM SHARED usersName(1 TO 1000)
+DIM SHARED numclients
 client = _OPENCLIENT("TCP/IP:300:localhost")
 hname$ = "Server Host"
 DO: _LIMIT 100
@@ -14,30 +15,55 @@ DO: _LIMIT 100
         users(numclients) = newclient
         GET #users(numclients), , name$
 
-
         ' SendMessage name$, name$ + " HAS JOINED", client
-
-
-
     END IF
 
+	CheckConnections
+	CheckMessages
+    GetMessage client
+    SendMessage hname$, mymessage$, client
+LOOP
+
+SUB CheckConnections
+    for i = 1 to numclients
+        if users(i) then
+        	DO _LIMIT 10
+        		PUT #users(i), , "Checking"
+        		GET #users(i), , message$
+        		if message$ <> "" then
+        			exit do
+        		else
+	        		ping = ping + 0.1
+	        		if ping >= 5 then
+	        			users(i) = 0
+	        			for p = i to numClients
+	        				users(p) = users(p + 1) 'there may be other things that need to be changed than this, but i haven't gotten a ton of time to check out the code
+	        				usersName(p) = usersName(p + 1)
+	        			next
+	        			numClients = numClients - 1
+	        			exit do
+	        		end if
+        		end if
+            LOOP
+        end if
+    next
+END SUB
+
+SUB CheckMessages
     FOR p = 1 TO numclients
         IF users(p) THEN
             GET #users(p), , message$
             IF message$ <> "" THEN
                 FOR i = 1 TO numclients
                     IF users(i) THEN
-
                         PUT #users(i), , message$
                     END IF
                 NEXT i
             END IF
         END IF
     NEXT p
+END SUB
 
-    GetMessage client
-    SendMessage hname$, mymessage$, client
-LOOP
 SUB GetMessage (client)
 GET #client, , newmessage$
 IF newmessage$ <> "" THEN
