@@ -4,6 +4,7 @@ host = _OPENHOST("TCP/IP:300")
 DIM SHARED users(1 TO 1000)
 DIM SHARED usersName(1 TO 1000)
 DIM SHARED numclients
+DIM SHARED nameKick$
 client = _OPENCLIENT("TCP/IP:300:localhost")
 hname$ = "Server Host"
 DO: _LIMIT 100
@@ -13,12 +14,12 @@ DO: _LIMIT 100
 
         numclients = numclients + 1
         users(numclients) = newclient
-        GET #users(numclients), , name$
 
+        GET #users(numclients), , usersName$(numclients)
         ' SendMessage name$, name$ + " HAS JOINED", client
     END IF
 
-    CheckConnections
+    'CheckConnections
     CheckMessages
     GetMessage client
     SendMessage hname$, mymessage$, client
@@ -92,7 +93,7 @@ IF k$ = CHR$(13) THEN ' [Enter] sends the message
             PRINT usersNames(p)
         NEXT
     ELSEIF LEFT$(mymessage$, 5) = "/kick" THEN
-        m = LEN(mymessage) - 6
+        m = LEN(mymessage$) - 6
         nameKick$ = RIGHT$(mymessage$, m)
         KICK nameKick$
     ELSEIF LEFT$(mymessage$, 4) = "/ban" THEN
@@ -114,6 +115,19 @@ IF k$ = CHR$(27) THEN SYSTEM ' [Esc] key ends program
 END SUB
 
 SUB KICK (nameKick$)
+nameKick$ = nameKick$
+PRINT
+PRINT "Kicking", nameKick$
+
+FOR i = 1 TO numclients
+    PRINT
+    PRINT "IS it"; usersName$(i)
+    IF nameKick$ = usersName$(i) THEN  'Should work once usersName does....:(
+        CLOSE #users(i)
+        EXIT SUB
+    ELSE
+    END IF
+NEXT
 END SUB
 
 SUB BAN (nameBan$)
