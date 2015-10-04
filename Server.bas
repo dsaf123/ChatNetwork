@@ -18,50 +18,51 @@ DO: _LIMIT 100
         ' SendMessage name$, name$ + " HAS JOINED", client
     END IF
 
-	CheckConnections
-	CheckMessages
+    CheckConnections
+    CheckMessages
     GetMessage client
     SendMessage hname$, mymessage$, client
 LOOP
 
 SUB CheckConnections
-    for i = 1 to numclients
-        if users(i) then
-        	DO _LIMIT 10
-        		PUT #users(i), , "Checking"
-        		GET #users(i), , message$
-        		if message$ <> "" then
-        			exit do
-        		else
-	        		ping = ping + 0.1
-	        		if ping >= 5 then
-	        			users(i) = 0
-	        			for p = i to numClients
-	        				users(p) = users(p + 1) 'there may be other things that need to be changed than this, but i haven't gotten a ton of time to check out the code
-	        				usersName(p) = usersName(p + 1)
-	        			next
-	        			numClients = numClients - 1
-	        			exit do
-	        		end if
-        		end if
-            LOOP
-        end if
-    next
+FOR i = 1 TO numclients
+    IF users(i) THEN
+        DO: _LIMIT 10
+            checking$ = "Checking"
+            PUT #users(i), , checking$
+            GET #users(i), , message$
+            IF message$ <> "" THEN
+                EXIT DO
+            ELSE
+                ping = ping + 0.1
+                IF ping >= 5 THEN
+                    users(i) = 0
+                    FOR p = i TO numclients
+                        users(p) = users(p + 1) 'there may be other things that need to be changed than this, but i haven't gotten a ton of time to check out the code
+                        usersName(p) = usersName(p + 1)
+                    NEXT
+                    numclients = numclients - 1
+                    EXIT DO
+                END IF
+            END IF
+        LOOP
+    END IF
+NEXT
 END SUB
 
 SUB CheckMessages
-    FOR p = 1 TO numclients
-        IF users(p) THEN
-            GET #users(p), , message$
-            IF message$ <> "" THEN
-                FOR i = 1 TO numclients
-                    IF users(i) THEN
-                        PUT #users(i), , message$
-                    END IF
-                NEXT i
-            END IF
+FOR p = 1 TO numclients
+    IF users(p) THEN
+        GET #users(p), , message$
+        IF message$ <> "" THEN
+            FOR i = 1 TO numclients
+                IF users(i) THEN
+                    PUT #users(i), , message$
+                END IF
+            NEXT i
         END IF
-    NEXT p
+    END IF
+NEXT p
 END SUB
 
 SUB GetMessage (client)
