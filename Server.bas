@@ -91,6 +91,18 @@ IF k$ = CHR$(13) THEN ' [Enter] sends the message
         FOR p = 1 TO numusers
             PRINT usersNames(p)
         NEXT
+    ELSEIF LEFT$(mymessage$, 5) = "/kick" THEN
+        m = LEN(mymessage) - 6
+        nameKick$ = RIGHT$(mymessage$, m)
+        KICK nameKick$
+    ELSEIF LEFT$(mymessage$, 4) = "/ban" THEN
+        m = LEN(mymessage$) - 5
+        nameBan$ = RIGHT$(mymessage$, m)
+        BAN nameBan$
+    ELSEIF LEFT$(mymessage$, 10) = "/whitelist" THEN
+        m = LEN(mymessage) - 11
+        nameWhitelist$ = RIGHT$(mymessage$, m)
+        WHITELIST nameWhitelist$
     ELSE
         IF mymessage$ = "" THEN SYSTEM ' [Enter] with no message ends program
         part3$ = name$ + ": " + mymessage$
@@ -99,4 +111,13 @@ IF k$ = CHR$(13) THEN ' [Enter] sends the message
     END IF
 END IF
 IF k$ = CHR$(27) THEN SYSTEM ' [Esc] key ends program
+END SUB
+
+SUB KICK (nameKick$)
+END SUB
+
+SUB BAN (nameBan$)
+END SUB
+
+SUB WHITELIST (nameWhitelist$)
 END SUB
