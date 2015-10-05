@@ -3,6 +3,7 @@ _TITLE ("SERVER")
 host = _OPENHOST("TCP/IP:300")
 DIM SHARED users(1 TO 1000)
 DIM SHARED usersName$(1 TO 1000)
+DIM SHARED usersFails(1 TO 1000)
 DIM SHARED numclients
 client = _OPENCLIENT("TCP/IP:300:localhost")
 hname$ = "Server Host"
@@ -22,7 +23,6 @@ DO: _LIMIT 100
         ' SendMessage name$, name$ + " HAS JOINED", client
     END IF
 
-    'CheckConnections
     CheckMessages
     GetMessage client
     SendMessage hname$, mymessage$, client
@@ -33,33 +33,6 @@ LOOP
 '2 = Command
 '3 = Connection Check
 
-
-SUB CheckConnections
-FOR i = 1 TO numclients
-    IF users(i) THEN
-        DO: _LIMIT 10
-            mymessage$ = "3"
-            PUT #users(i), , mymessage$
-            GET #users(i), , message$
-            IF message$ <> "" THEN
-                EXIT DO
-            ELSE
-                ping = ping + 0.1
-                IF ping >= 5 THEN
-                    users(i) = 0
-                    FOR p = i TO numclients
-                        users(p) = users(p + 1) 'there may be other things that need to be changed than this, but i haven't gotten a ton of time to check out the code
-                        usersName(p) = usersName(p + 1)
-                    NEXT
-                    numclients = numclients - 1
-                    EXIT DO
-                END IF
-            END IF
-        LOOP
-    END IF
-NEXT
-END SUB
-
 SUB CheckMessages
 FOR p = 1 TO numclients
     IF users(p) THEN
@@ -68,6 +41,7 @@ FOR p = 1 TO numclients
         SELECT CASE LEFT$(message$, 1) 'checks what message type it is
 
             CASE "1": 'regular message
+                usersFails(p) = 0
                 FOR i = 1 TO numclients
                     IF users(i) THEN
                         message$ = RIGHT$(message$, LEN(message$) - 1) 'only prints what's after the message type indicator
@@ -76,6 +50,7 @@ FOR p = 1 TO numclients
                 NEXT i
 
             CASE "2": 'command
+                usersFails(p) = 0
                 SELECT CASE RIGHT$(message$, LEN(message$) - 1) 'checks what command is being ran
                     CASE "list": 'lists all online users and sends to the client that requested it
                         FOR i = 1 TO numclients
@@ -84,6 +59,24 @@ FOR p = 1 TO numclients
                         PUT #client, , servermessage$
                         servermessage$ = ""
                 END SELECT
+            CASE "3": 'connection confirmation
+                usersFails(p) = 0
+            CASE "": 'no message recieved on attempt
+                usersFails(p) = usersFails(p) + 1
+                IF usersFails(p) = 500 then
+                    users(p) = 0
+                    usersName$(p) = 0
+                    usersFails(p) = 0
+                    CLOSE #users(p)
+                    for i = p to numclients
+                        users(p) = users(p + 1)
+                        usersName$(p) = usersName$(p + 1)
+                        usersFails(p) = usersFails(p + 1)
+                        
+                    next i
+                    numclients = numclients - 1
+                end if
+            
         END SELECT
     END IF
 NEXT p
@@ -118,11 +111,13 @@ IF k$ = CHR$(13) THEN ' [Enter] sends the message
         mymessage$ = "2" + RIGHT$(mymessage$, LEN(mymessage$) - 1) ' replaces "/" with "2" to show message type
         PUT #client, , mymessage$
     ELSE
-        IF mymessage$ = "" THEN SYSTEM ' [Enter] with no message ends program
         mymessage$ = "1" + mymessage$
         PUT #client, , mymessage$
         mymessage$ = ""
     END IF
+ELSE
+    confirmation$ = "3"
+    put #client, , confirmation$
 END IF
 IF k$ = CHR$(27) THEN SYSTEM ' [Esc] key ends program
 END SUB
