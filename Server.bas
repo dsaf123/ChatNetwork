@@ -43,9 +43,14 @@ FOR p = 1 TO numclients
             CASE "1": 'regular message
                 usersFails(p) = 0
                 FOR i = 1 TO numclients
-                    IF users(i) THEN
+                    IF users(i) and users(i) <> client THEN
                         message$ = RIGHT$(message$, LEN(message$) - 1) 'only prints what's after the message type indicator
                         PUT #users(i), , message$
+                    elseif users(i) = client then
+                        VIEW PRINT 1 TO 23
+                        LOCATE 23, 1
+                        PRINT message$
+                        VIEW PRINT 1 TO 24
                     END IF
                 NEXT i
 
@@ -56,7 +61,7 @@ FOR p = 1 TO numclients
                         FOR i = 1 TO numclients
                             servermessage$ = servermessage$ + usersName$(i)
                         NEXT
-                        PUT #client, , servermessage$
+                        PUT #users(p), , servermessage$
                         servermessage$ = ""
                 END SELECT
             CASE "3": 'connection confirmation
@@ -65,7 +70,7 @@ FOR p = 1 TO numclients
                 usersFails(p) = usersFails(p) + 1
                 IF usersFails(p) = 500 then
                     users(p) = 0
-                    usersName$(p) = 0
+                    usersName$(p) = ""
                     usersFails(p) = 0
                     CLOSE #users(p)
                     for i = p to numclients
